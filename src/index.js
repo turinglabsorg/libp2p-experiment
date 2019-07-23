@@ -48,7 +48,7 @@ function createPeer(callback) {
     })
 
     peer.handle('/a-protocol', (protocol, conn) => {
-      log(protocol,conn)
+      log('RECEIVED MESSAGE: ' + pull.map((v) => v.toString()))
       pull(
         conn,
         pull.map((v) => v.toString()),
@@ -84,7 +84,7 @@ function pingRemotePeer(localPeer) {
   const remotePeerInfo = new PeerInfo(peerId)
   remotePeerInfo.multiaddrs.add(remoteAddr)
 
-  log('sending something to peer at', remoteAddr.toString())
+  log('sending something to peer at ' + remoteAddr.toString())
   localPeer.dialProtocol(remotePeerInfo, '/a-protocol', (err, conn) => {
     if (err) { throw err }
     pull(pull.values(['TEST SEND SOMETHING']), conn)
