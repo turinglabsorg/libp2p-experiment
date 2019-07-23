@@ -37,7 +37,7 @@ function createPeer(callback) {
       return callback(err)
     }
 
-    const publicAddress = multiaddr(`/ip4/0.0.0.0/tcp/11356`)
+    const publicAddress = multiaddr(`/ip4/0.0.0.0/tcp/0`)
     peerInfo.multiaddrs.add(publicAddress)
 
     const peer = new P2PNode({peerInfo})
@@ -48,11 +48,12 @@ function createPeer(callback) {
     })
 
     peer.handle('/a-protocol', (protocol, conn) => {
-      log('RECEIVED MESSAGE: ' + pull.map((v) => v.toString()))
-      pull(
+      pull( 
         conn,
-        pull.map((v) => v.toString()),
-        pull.log()
+        pull.map((v) => {
+          log('Message received: ' + v.toString())
+        }),
+        pull.drain()
       )
     })
 
