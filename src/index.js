@@ -5,10 +5,10 @@ const TCP = require('libp2p-tcp')
 const defaultsDeep = require('@nodeutils/defaults-deep')
 const Multiplex = require('libp2p-mplex')
 const SECIO = require('libp2p-secio')
-const Ping = require('libp2p-ping')
 const pull = require('pull-stream')
 const process = require('process')
 const PeerId = require('peer-id')
+const fs = require('fs')
 
 const DEFAULT_OPTS = {
   modules: {
@@ -48,7 +48,7 @@ function createPeer(callback) {
     })
 
     peer.handle('/a-protocol', (protocol, conn) => {
-      console.log(protocol,conn)
+      log(protocol,conn)
       pull(
         conn,
         pull.map((v) => v.toString()),
@@ -60,16 +60,22 @@ function createPeer(callback) {
   })
 }
 
+function log(toLog){
+  console.log(toLog)
+  var d = new Date().toLocaleString();
+  fs.appendFileSync('log', '[' + d + '] ' + toLog + '\n');
+}
+
 function startPeer(peer) {
     const addresses = peer.peerInfo.multiaddrs.toArray()
-    console.log('peer started. listening on addresses:')
-    addresses.forEach(addr => console.log(addr.toString()))
+    log('peer started. listening on addresses:')
+    addresses.forEach(addr => log(addr.toString()))
     pingRemotePeer(peer)
 }
 
 function pingRemotePeer(localPeer) {
   if (process.argv.length < 3) {
-    return console.log('no remote peer address given, skipping ping')
+    return log('no remote peer address given, skipping ping')
   }
   const remoteAddr = multiaddr(process.argv[2])
 
@@ -78,7 +84,7 @@ function pingRemotePeer(localPeer) {
   const remotePeerInfo = new PeerInfo(peerId)
   remotePeerInfo.multiaddrs.add(remoteAddr)
 
-  console.log('sending something to peer at', remoteAddr.toString())
+  log('sending something to peer at', remoteAddr.toString())
   localPeer.dialProtocol(remotePeerInfo, '/a-protocol', (err, conn) => {
     if (err) { throw err }
     pull(pull.values(['TEST SEND SOMETHING']), conn)
